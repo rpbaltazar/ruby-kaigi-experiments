@@ -9,7 +9,7 @@ class ShapeDetector:
     # initialize the shape name and approximate the contour
     shape = "unidentified"
     peri = cv2.arcLength(c, True)
-    approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+    approx = cv2.approxPolyDP(c, 0.02 * peri, True)
 
     M = cv2.moments(approx)
 
@@ -26,3 +26,8 @@ class ShapeDetector:
       shape = "circle"
 
     return [shape, M]
+
+  def findCenter(self, M):
+    cX = int(M["m10"] / M["m00"])
+    cY = int(M["m01"] / M["m00"])
+    return [cX, cY]

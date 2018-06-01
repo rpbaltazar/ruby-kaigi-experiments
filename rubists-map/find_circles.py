@@ -27,16 +27,11 @@ sd = ShapeDetector()
 # loop over the contours
 count = 0
 for c in cnts:
-
   shape, M = sd.detect(c)
-
-  print(shape)
-  print(int(M["m00"]))
   if (shape != "circle" or int(M["m00"]) < 10):
     continue
 
-  cX = int(M["m10"] / M["m00"])
-  cY = int(M["m01"] / M["m00"])
+  cX, cY = sd.findCenter(M)
 
   # draw the contour and center of the shape on the image
   cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
@@ -49,7 +44,7 @@ for c in cnts:
     count += 1
 
 # show the image
-  cv2.imshow("Image", image)
-  cv2.waitKey(0)
+cv2.imshow("Image", image)
+cv2.waitKey(0)
 
 print(count)
