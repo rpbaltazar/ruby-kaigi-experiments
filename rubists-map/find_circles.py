@@ -1,4 +1,5 @@
 # import the necessary packages
+from pyimagesearch.shapedetector import ShapeDetector
 import argparse
 import imutils
 import cv2
@@ -13,7 +14,7 @@ args = vars(ap.parse_args())
 # and threshold it
 image = cv2.imread(args["image"])
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+blurred = cv2.GaussianBlur(gray, (7, 7), 0)
 thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
 
 cnts = cv2.findContours(thresh.copy(), cv2.RETR_TREE,
@@ -21,23 +22,17 @@ cnts = cv2.findContours(thresh.copy(), cv2.RETR_TREE,
 
 cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 
+sd = ShapeDetector()
+
 # loop over the contours
 count = 0
 for c in cnts:
-  # compute the center of the contour
-  perimeter = cv2.arcLength(c, True)
-  approx = cv2.approxPolyDP(c, 0.02 * perimeter, True)
 
-  M = cv2.moments(approx)
+  shape, M = sd.detect(c)
 
-  if int(M["m00"]) == 0:
-    continue
-
-  # 4 edges is a rectangle, so ignore
-  if len(approx) == 4:
-    continue
-
-  if M["m00"] < 30:
+  print(shape)
+  print(int(M["m00"]))
+  if (shape != "circle" or int(M["m00"]) < 10):
     continue
 
   cX = int(M["m10"] / M["m00"])
@@ -49,7 +44,7 @@ for c in cnts:
 
   # Hacky fix for big junction of spots
   if M["m00"] > 300:
-    count += 2
+    count += int(M["m00"] / 200)
   else:
     count += 1
 
