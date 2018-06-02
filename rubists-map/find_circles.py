@@ -1,5 +1,6 @@
 # import the necessary packages
 from pyimagesearch.shapedetector import ShapeDetector
+from worldmapper.continentdetector import ContinentDetector
 import argparse
 import imutils
 import cv2
@@ -23,9 +24,17 @@ cnts = cv2.findContours(thresh.copy(), cv2.RETR_TREE,
 cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 
 sd = ShapeDetector()
+cd = ContinentDetector()
+
+for rect in cd.continents.values():
+  cv2.rectangle(image, rect.topleft, rect.bottomright, (0, 255, 0), 2)
+
+cv2.imshow("Image", image)
+cv2.waitKey(0)
 
 # loop over the contours
 count = 0
+countriesCount = {}
 for c in cnts:
   shape, M = sd.detect(c)
   if (shape != "circle" or int(M["m00"]) < 10):
@@ -38,13 +47,25 @@ for c in cnts:
   cv2.circle(image, (cX, cY), 7, (255, 255, 255), -1)
 
   # Hacky fix for big junction of spots
+  increment = 1
   if M["m00"] > 300:
-    count += int(M["m00"] / 200)
+    increment = int(M["m00"] / 200)
+
+  coords = { 'x': cX, 'y': cY }
+  continent = cd.detect(coords)
+
+  if continent == "invalid":
+    print("Not found")
+    print(coords)
   else:
-    count += 1
+    countriesCount.setdefault(continent, 0)
+    countriesCount[continent] += increment
+
+  count += increment
 
 # show the image
 cv2.imshow("Image", image)
 cv2.waitKey(0)
 
 print(count)
+print(countriesCount)
